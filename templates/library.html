@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08080e">
+  <title>Library — OpenPlex</title>
+  <link rel="stylesheet" href="/static/style.css?v=6">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="preconnect" href="https://image.tmdb.org">
+  <link rel="preconnect" href="https://azfilm.theazizi.ir">
+</head>
+<body>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+
+  <header class="lib-header" id="libHeader">
+    <div class="lib-header-bg" id="libHeaderBg"></div>
+    <div class="lib-header-content">
+      <div class="lib-brand">
+        <h1><span class="icon-sm">film</span> Library</h1>
+      </div>
+      <nav class="main-nav" id="mainNav">
+        <a href="/" class="nav-link" data-page="files"><span class="icon-sm">folder</span><span class="nav-label">Files</span></a>
+        <a href="/library" class="nav-link active" data-page="library"><span class="icon-sm">film</span><span class="nav-label">Library</span></a>
+        <a href="/downloads" class="nav-link" data-page="downloads"><span class="icon-sm">download</span><span class="nav-label">Downloads</span></a>
+      </nav>
+      <div class="lib-search-wrap">
+        <span class="icon-sm search-icon">search</span>
+        <input type="text" id="libSearch" class="lib-search-input" placeholder="Search titles, cast, director..." autocomplete="off">
+        <div id="libSearchResults" class="lib-search-results" style="display:none;"></div>
+      </div>
+      <div class="user-menu">
+        <button class="user-menu-btn" id="userMenuBtn">?</button>
+          <div class="user-dropdown" id="userDropdown">
+            <div class="user-dropdown-header" id="userDropdownHeader">Not logged in</div>
+            <div class="user-dropdown-divider"></div>
+            <a href="/profile" class="user-dropdown-item"><span class="icon-sm">user</span> Profile</a>
+            <a href="/upload" class="user-dropdown-item"><span class="icon-sm">upload</span> Uploads</a>
+            <a href="/" class="user-dropdown-item"><span class="icon-sm">folder</span> Files</a>
+            <a href="/downloads" class="user-dropdown-item"><span class="icon-sm">download</span> Downloads</a>
+            <a href="/status" class="user-dropdown-item"><span class="icon-sm">chart-bar</span> Server Status</a>
+            <div class="user-dropdown-divider"></div>
+            <button class="user-dropdown-item" id="logoutBtn"><span class="icon-sm">sign-out</span> Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="lib-main" id="libMain">
+    <!-- Hero section -->
+    <section class="lib-hero" id="libHero" style="display:none;">
+      <div class="lib-hero-bg" id="libHeroBg"></div>
+      <div class="lib-hero-content">
+        <div class="lib-hero-meta">
+          <span class="lib-hero-match" id="libHeroMatch">98% Match</span>
+          <span class="lib-hero-rating" id="libHeroRating"></span>
+          <span class="lib-hero-year" id="libHeroYear"></span>
+          <span class="lib-hero-runtime" id="libHeroRuntime"></span>
+        </div>
+        <h2 class="lib-hero-title" id="libHeroTitle"></h2>
+        <p class="lib-hero-tagline" id="libHeroTagline"></p>
+        <p class="lib-hero-overview" id="libHeroOverview"></p>
+        <div class="lib-hero-buttons">
+          <button class="lib-btn lib-btn-primary" id="libHeroPlay"><span class="icon-sm">play</span> Play</button>
+          <button class="lib-btn lib-btn-ghost" id="libHeroInfo"><span class="icon-sm">info-circle</span> More Info</button>
+          <button class="lib-btn lib-btn-ghost" id="libHeroWatchlist"><span class="icon-sm">plus</span> Watchlist</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rows of titles -->
+    <div class="lib-rows" id="libRows">
+      <div class="lib-loader">
+        <span class="icon-lg">spinner</span>
+        <p>Loading library...</p>
+      </div>
+    </div>
+
+    <!-- Browse by genre grid -->
+    <section class="lib-section" id="libGenresSection" style="display:none;">
+      <h2 class="lib-section-title">Browse by Genre</h2>
+      <div class="lib-genre-grid" id="libGenreGrid"></div>
+    </section>
+  </main>
+
+  <!-- Detail modal -->
+  <div class="lib-modal" id="libModal" style="display:none;">
+    <div class="lib-modal-backdrop" id="libModalBackdrop"></div>
+    <div class="lib-modal-content" id="libModalContent">
+      <button class="lib-modal-close" id="libModalClose">&times;</button>
+      <div class="lib-modal-body" id="libModalBody">
+        <div class="lib-loader"><span class="icon-lg">spinner</span><p>Loading...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="/static/player.js?v=6"></script>
+  <script src="/static/library.js?v=6"></script>
+<script src="/static/nav.js?v=7"></script>
+</body>
+</html>

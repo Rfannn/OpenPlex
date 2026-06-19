@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#08080e">
+  <title>Status — OpenPlex</title>
+  <link rel="stylesheet" href="/static/style.css?v=6">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+  <style>
+    body { background: #08080e; color: #e0e0e0; font-family: system-ui, -apple-system, sans-serif; }
+    .st-page { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .st-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+    .st-header h1 { font-size:1.4rem; font-weight:700; background:linear-gradient(135deg,#a78bfa,#ec4899); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .st-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+    .st-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; }
+    .st-card h2 { font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em; color:#888; margin:0 0 12px 0; }
+    .st-stat { display:flex; justify-content:space-between; padding:4px 0; font-size:0.88rem; }
+    .st-stat .label { color:#999; }
+    .st-stat .value { font-weight:600; font-variant-numeric:tabular-nums; }
+    .st-badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:0.72rem; font-weight:600; }
+    .st-badge.ok { background:rgba(52,211,153,0.15); color:#34d399; }
+    .st-badge.warn { background:rgba(251,191,36,0.15); color:#fbbf24; }
+    .st-badge.err { background:rgba(239,68,68,0.15); color:#ef4444; }
+    .st-bar { height:6px; background:rgba(255,255,255,0.08); border-radius:4px; margin:6px 0; overflow:hidden; }
+    .st-bar-fill { height:100%; border-radius:4px; transition:width 0.5s; }
+    .st-bar-fill.green { background:linear-gradient(90deg,#34d399,#10b981); }
+    .st-bar-fill.blue { background:linear-gradient(90deg,#60a5fa,#3b82f6); }
+    .st-bar-fill.purple { background:linear-gradient(90deg,#a78bfa,#8b5cf6); }
+    .st-bar-fill.red { background:linear-gradient(90deg,#f87171,#ef4444); }
+    .st-dl-row { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+    .st-dl-row:last-child { border-bottom:none; }
+    .st-dl-info { flex:1; min-width:0; }
+    .st-dl-title { font-size:0.82rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .st-dl-progress { font-size:0.72rem; color:#999; }
+    .st-dl-speed { font-size:0.75rem; color:#60a5fa; white-space:nowrap; }
+    .st-scraper-row { display:flex; align-items:center; gap:8px; padding:4px 0; }
+    .st-meta { font-size:0.78rem; color:#666; margin-top:12px; text-align:center; }
+    .st-refresh { text-align:right; font-size:0.72rem; color:#555; margin-bottom:8px; }
+    @media (prefers-color-scheme:light) {
+      body { background:#f5f5f5; color:#222; }
+      .st-card { background:#fff; border-color:#e0e0e0; }
+      .st-dl-row { border-color:#eee; }
+      .st-badge.ok { background:rgba(16,185,129,0.1); color:#059669; }
+      .st-badge.warn { background:rgba(245,158,11,0.1); color:#d97706; }
+      .st-badge.err { background:rgba(239,68,68,0.1); color:#dc2626; }
+    }
+  </style>
+</head>
+<body>
+  <div class="st-page">
+    <div class="st-header">
+      <h1><span id="st-icon" style="display:inline-block;width:18px;height:18px;vertical-align:middle;margin-right:6px;"></span> System Status</h1>
+      <a href="/" class="btn btn-ghost btn-sm" style="text-decoration:none;">&larr; Back</a>
+    </div>
+    <div class="st-refresh" id="stRefresh">refreshing...</div>
+    <div class="st-grid" id="stGrid"></div>
+    <div class="st-meta" id="stMeta"></div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function fmtBytes(b) {
+      if (!b || b === 0) return '0 B';
+      const s = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(b) / Math.log(1024));
+      return (b / Math.pow(1024, i)).toFixed(1) + ' ' + s[i];
+    }
+
+    function fmtSpeed(bps) {
+      const n = parseInt(bps) || 0;
+      return n > 0 ? fmtBytes(n) + '/s' : '';
+    }
+
+    function svg(name, size) {
+      const paths = {
+        'server': '<path d="M4 4a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm0 8a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm0 6a2 2 0 012-2h4a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z"/>',
+        'database': '<path d="M4 6c0 1.657 3.582 3 8 3s8-1.343 8-3M4 6v6c0 1.657 3.582 3 8 3s8-1.343 8-3M4 6V4c0-1.657 3.582-3 8-3s8 1.343 8 3v2m0 4v6c0 1.657-3.582 3-8 3s-8-1.343-8-3"/>',
+        'download': '<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>',
+        'search': '<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>',
+        'users': '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>',
+        'activity': '<path d="M13 10V3L4 14h7v7l9-11h-7z"/>',
+        'check-circle': '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+        'x-circle': '<path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+        'hard-drive': '<path d="M22 12h-4l-3 9H9l-3-9H2"/>',
+      };
+      const d = paths[name] || paths['activity'];
+      return '<svg viewBox="0 0 24 24" width="' + (size||14) + '" height="' + (size||14) + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    }
+
+    function card(title, icon, content) {
+      return '<div class="st-card"><h2>' + svg(icon, 14) + ' ' + esc(title) + '</h2>' + content + '</div>';
+    }
+
+    function badge(val, ok, warn) {
+      if (ok) return '<span class="st-badge ok">' + esc(val) + '</span>';
+      if (warn) return '<span class="st-badge warn">' + esc(val) + '</span>';
+      return '<span class="st-badge err">' + esc(val) + '</span>';
+    }
+
+    function stat(label, value, cls) {
+      return '<div class="st-stat"><span class="label">' + esc(label) + '</span><span class="value' + (cls?' '+cls:'') + '">' + value + '</span></div>';
+    }
+
+    function bar(pct, cls) {
+      return '<div class="st-bar"><div class="st-bar-fill ' + cls + '" style="width:' + Math.min(pct,100) + '%"></div></div>';
+    }
+
+    async function loadStatus() {
+      try {
+        const r = await fetch(API + '/api/status');
+        const d = await r.json();
+        if (!d.success) throw new Error('API error');
+        render(d);
+      } catch (e) {
+        document.getElementById('stGrid').innerHTML = '<div class="st-card"><h2>Error</h2><p>' + esc(e.message) + '</p></div>';
+      }
+    }
+
+    function render(d) {
+      const grid = document.getElementById('stGrid');
+      let cards = '';
+
+      // Server card
+      cards += card('Server', 'server', 
+        stat('Uptime', d.server.uptime) +
+        stat('Host', d.server.host + ':' + d.server.port) +
+        stat('Environment', badge(d.server.env, d.server.env === 'production', d.server.env === 'development')) +
+        stat('Debug', d.server.debug ? badge('ON', false, true) : badge('OFF', true))
+      );
+
+      // Disk card
+      const diskPct = d.disk.usage_pct;
+      cards += card('Disk', 'hard-drive',
+        stat('Media Root', '<span style="font-size:0.78rem;color:#999;">' + esc(d.disk.media_root) + '</span>') +
+        stat('Root exists', d.disk.media_root_exists ? badge('YES', true) : badge('NO', false, true)) +
+        bar(diskPct, diskPct > 90 ? 'red' : diskPct > 70 ? '' : 'blue') +
+        stat('Used', fmtBytes(d.disk.used) + ' / ' + fmtBytes(d.disk.total), diskPct > 90 ? 'warn' : '') +
+        stat('Free', fmtBytes(d.disk.free)) +
+        stat('Usage', diskPct + '%')
+      );
+
+      // Aria2 card
+      cards += card('Aria2', 'activity',
+        stat('Process', d.aria2.process ? badge('Running', d.aria2.alive) : badge('Not started', false, true)) +
+        stat('Alive', d.aria2.alive ? badge('YES', true) : badge('NO', false, true))
+      );
+
+      // Catalog card
+      const covPct = d.catalog.coverage_pct;
+      cards += card('Catalog', 'database',
+        stat('Total entries', d.catalog.total) +
+        stat('Movies', d.catalog.movies) +
+        stat('Series', d.catalog.series) +
+        bar(covPct, 'purple') +
+        stat('Cover coverage', covPct + '% (' + d.catalog.with_covers + '/' + d.catalog.total + ')')
+      );
+
+      // Downloads card
+      const dl = d.downloads;
+      cards += card('Downloads', 'download',
+        stat('Total', dl.total) +
+        stat('Active', dl.active, dl.active > 0 ? 'warn' : '') +
+        stat('Completed', dl.completed, dl.completed > 0 ? '' : '') +
+        stat('Failed', dl.failed, dl.failed > 0 ? 'warn' : '') +
+        stat('Paused', dl.paused) +
+        stat('Scheduled', dl.scheduled) +
+        stat('Downloaded', fmtBytes(dl.total_bytes_downloaded))
+      );
+
+      // Active downloads detail
+      if (dl.active_list && dl.active_list.length > 0) {
+        let dlHtml = '<div style="max-height:260px;overflow-y:auto;">';
+        dl.active_list.forEach(t => {
+          const spd = fmtSpeed(t.speed);
+          dlHtml += '<div class="st-dl-row">' +
+            '<div class="st-dl-info">' +
+            '<div class="st-dl-title">' + esc(t.title || t.file_name) + '</div>' +
+            '<div class="st-dl-progress">' + Math.round(t.progress || 0) + '% &middot; ' + fmtBytes(parseInt(t.downloaded_bytes)||0) + '/' + fmtBytes(parseInt(t.total_bytes)||0) + '</div>' +
+            bar(t.progress || 0, 'green') +
+            '</div>' +
+            '<div class="st-dl-speed">' + spd + '</div>' +
+            '</div>';
+        });
+        dlHtml += '</div>';
+        cards += card('Active Downloads', 'activity', dlHtml);
+      }
+
+      // Scrapers card
+      if (d.scrapers && d.scrapers.length > 0) {
+        let scHtml = '';
+        d.scrapers.forEach(s => {
+          const ok = s.healthy && s.enabled && !s.in_cooldown;
+          const warn = s.enabled && (s.in_cooldown || s.consecutive_fails > 0);
+          const color = ok ? '#34d399' : (warn ? '#fbbf24' : '#ef4444');
+          let extra = '<span style="font-size:0.7rem;color:#777;">' + esc(s.class) + '</span>';
+          if (s.consecutive_fails > 0) extra += ' <span style="font-size:0.7rem;color:#fbbf24;">fails:' + s.consecutive_fails + '</span>';
+          if (s.total_searches > 0) extra += ' <span style="font-size:0.7rem;color:#777;">searches:' + s.total_searches + '</span>';
+          if (s.in_cooldown) extra += ' <span style="font-size:0.7rem;color:#fbbf24;">cooldown</span>';
+          if (s.error) extra += ' <span style="font-size:0.7rem;color:#ef4444;">err:' + esc(s.error) + '</span>';
+          if (s.last_error) extra += ' <span style="font-size:0.7rem;color:#ef4444;">' + esc(s.last_error).substring(0, 60) + '</span>';
+          // Archive cache info
+          if (s.archive_cache) {
+            const ac = s.archive_cache;
+            const cacheAge = ac.cached ? Math.floor(ac.age_seconds / 60) + 'm ago' : 'none';
+            extra += ' <span style="font-size:0.7rem;color:#777;">cache:' + cacheAge + '</span>';
+          }
+          scHtml += '<div class="st-scraper-row">' +
+            badge(s.name, ok, !s.enabled) +
+            ' ' + extra +
+            '</div>';
+        });
+        cards += card('Scrapers', 'search', scHtml);
+      }
+
+      // Local AI card
+      if (d.local_ai) {
+        const ai = d.local_ai;
+        const ok = ai.healthy;
+        cards += card('Local AI (Qwen 2.5 3B)', 'activity',
+          stat('Server', ok ? badge('RUNNING', true) : badge('DOWN', false, true)) +
+          stat('Model', ai.model) +
+          stat('Port', ai.port) +
+          stat('Files categorized', ai.categorized)
+        );
+      }
+
+      // Users card
+      cards += card('Users', 'users',
+        stat('Registered', d.users)
+      );
+
+      // APIs card
+      if (d.apis) {
+        const apis = d.apis;
+        let apisHtml = '';
+        for (const [name, info] of Object.entries(apis)) {
+          const ok = info.configured && (info.reachable !== false);
+          const warn = info.configured && info.reachable === false;
+          apisHtml += '<div class="st-scraper-row">' +
+            badge(name, ok, warn) +
+            (info.configured ? (info.reachable !== false ? ' <span style="font-size:0.72rem;color:#34d399;">reachable</span>' : ' <span style="font-size:0.72rem;color:#fbbf24;">unreachable</span>') : ' <span style="font-size:0.72rem;color:#888;">not configured</span>') +
+            '</div>';
+        }
+        cards += card('APIs', 'check-circle', apisHtml);
+      }
+
+      grid.innerHTML = cards;
+
+      document.getElementById('stRefresh').textContent = 'last updated: ' + new Date().toLocaleTimeString();
+      document.getElementById('stMeta').innerHTML = 'OpenPlex v2.0';
+    }
+
+    loadStatus();
+    setInterval(loadStatus, 5000);
+  </script>
+<script src="/static/nav.js?v=7"></script>
+</body>
+</html>

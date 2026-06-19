@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*.egg-info
+venv/
+.venv/
+sharev3/
+
+# Node
+node_modules/
+
+# Data (mounted as volumes)
+data/
+thumbnails/
+downloads/
+logs/
+
+# Windows binaries
+aria2c.exe
+ffmpeg.exe
+ffprobe.exe
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.md
+*.log
+*.tmp
+.env
+.env.example
+tests/
+scripts/
+deploy/
+check-ai.sh
+download_all_covers.py
+migrate_azfilm_covers.py

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08080e">
+  <title>Uploads — OpenPlex</title>
+  <link rel="stylesheet" href="/static/style.css?v=6">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+
+  <header class="lib-header">
+    <div class="lib-header-content">
+      <div class="lib-brand">
+        <h1><span class="icon-sm">upload</span> Uploads</h1>
+      </div>
+      <nav class="main-nav" id="mainNav">
+        <a href="/" class="nav-link" data-page="files"><span class="icon-sm">folder</span><span class="nav-label">Files</span></a>
+        <a href="/library" class="nav-link" data-page="library"><span class="icon-sm">film</span><span class="nav-label">Library</span></a>
+        <a href="/downloads" class="nav-link" data-page="downloads"><span class="icon-sm">download</span><span class="nav-label">Downloads</span></a>
+      </nav>
+      <div class="user-menu">
+        <button class="user-menu-btn" id="userMenuBtn">?</button>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-header" id="userDropdownHeader">Not logged in</div>
+          <div class="user-dropdown-divider"></div>
+          <a href="/profile" class="user-dropdown-item"><span class="icon-sm">user</span> Profile</a>
+          <a href="/status" class="user-dropdown-item"><span class="icon-sm">chart-bar</span> Server Status</a>
+          <div class="user-dropdown-divider"></div>
+          <button class="user-dropdown-item" id="logoutBtn"><span class="icon-sm">sign-out</span> Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding: 20px; max-width: 960px; margin: 0 auto;">
+    <div class="upload-area" id="uploadArea">
+      <div class="upload-dropzone" id="uploadDropzone">
+        <div style="font-size:3rem;margin-bottom:8px;">📁</div>
+        <h3>Drop files here or click to browse</h3>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-top:8px;">Files are uploaded to Uploads/<strong id="uploadUserDir">your_user</strong>/</p>
+        <input type="file" id="uploadInput" multiple style="display:none">
+      </div>
+      <div class="upload-progress" id="uploadProgress" style="display:none;"></div>
+    </div>
+
+    <div class="upload-browser" style="margin-top:32px;">
+      <div class="upload-browser-header" style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <h2 style="font-size:1.2rem;font-weight:600;margin:0;">Your Uploads</h2>
+        <button class="lib-btn lib-btn-ghost" id="uploadRefreshBtn" style="font-size:0.8rem;">Refresh</button>
+        <button class="lib-btn lib-btn-ghost" id="uploadNewFolderBtn" style="font-size:0.8rem;">+ New Folder</button>
+      </div>
+      <div class="upload-breadcrumb" id="uploadBreadcrumb"></div>
+      <div class="upload-grid" id="uploadGrid">
+        <div class="lib-loader"><span class="icon-lg">spinner</span><p>Loading...</p></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="/static/upload.js?v=6"></script>
+<script src="/static/nav.js?v=7"></script>
+</body>
+</html>

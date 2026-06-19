@@ -1,0 +1,66 @@
+# Environment
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+sharev3/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Data (user-specific, generated at runtime)
+data/
+thumbnails/
+downloads/
+logs/
+
+# Cover cache (generated)
+static/covers/*.jpg
+
+# Transcode cache
+.transcode_cache/
+
+# Node
+node_modules/
+
+# Windows binaries (should not be in repo)
+aria2c.exe
+ffmpeg.exe
+ffprobe.exe
+
+# Test/scratch scripts at root
+download_all_covers.py
+migrate_azfilm_covers.py
+check-ai.sh
+
+# Temp files
+*.tmp
+*.failed
+*.log
+tmp_enrich.*
+
+# Docker
+docker-compose.override.yml

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#08080e">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>{{ code }} — OpenPlex</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+      background: #08080e;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .error-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 50px 40px;
+      text-align: center;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .error-icon { color: #6366f1; margin-bottom: 16px; }
+    .error-icon svg { width: 60px; height: 60px; }
+    h1 { font-size: 64px; color: #e6e6f0; margin-bottom: 8px; font-weight: 800; }
+    h2 { color: #8888a0; margin-bottom: 16px; font-weight: 500; font-size: 1.2rem; }
+    p { color: #555570; margin-bottom: 24px; font-size: 0.9rem; }
+    .home-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #06b6d4, #6366f1);
+      color: white; text-decoration: none;
+      padding: 12px 28px; border-radius: 12px; font-weight: 600;
+      transition: all 0.2s;
+    }
+    .home-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 24px rgba(6,182,212,0.3); }
+    .home-btn svg { width: 16px; height: 16px; }
+  </style>
+</head>
+<body>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+  <div class="error-card">
+    <div class="error-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+      </svg>
+    </div>
+    <h1>{{ code }}</h1>
+    <h2>{{ error }}</h2>
+    <p>Something went wrong. We've got you covered.</p>
+    <a href="/" class="home-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a2 2 0 002 2h3m10 0a2 2 0 002-2v-6a2 2 0 00-2-2h-1"/>
+      </svg>
+      Go Home
+    </a>
+  </div>
+</body>
+</html>

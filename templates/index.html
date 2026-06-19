@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08080e">
+  <title>OpenPlex</title>
+  <link rel="stylesheet" href="/static/style.css?v=6">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+  <div class="app-container">
+    <header class="header">
+      <div class="header-content">
+        <div class="header-left">
+          <button class="btn-icon" id="backButton" style="display:none"></button>
+          <h1><span class="icon-sm">photo-video</span> OpenPlex</h1>
+        </div>
+        <div class="header-nav">
+          <nav class="main-nav" id="mainNav">
+            <a href="/" class="nav-link active" data-page="files">
+              <span class="icon-sm">folder</span><span class="nav-label">Files</span>
+              <span class="nav-arrow">&#9662;</span>
+              <div class="nav-sub">
+                <a href="/" class="nav-sub-item"><span class="icon-sm">folder</span> Browse</a>
+                <a href="/?view=grid" class="nav-sub-item"><span class="icon-sm">th</span> Grid View</a>
+                <a href="/?view=list" class="nav-sub-item"><span class="icon-sm">list</span> List View</a>
+              </div>
+            </a>
+            <a href="/library" class="nav-link" data-page="library">
+              <span class="icon-sm">film</span><span class="nav-label">Library</span>
+              <span class="nav-arrow">&#9662;</span>
+              <div class="nav-sub">
+                <a href="/library" class="nav-sub-item"><span class="icon-sm">film</span> All Media</a>
+              </div>
+            </a>
+            <a href="/downloads" class="nav-link" data-page="downloads">
+              <span class="icon-sm">download</span><span class="nav-label">Downloads</span>
+              <span class="nav-arrow">&#9662;</span>
+              <div class="nav-sub">
+                <a href="/downloads" class="nav-sub-item"><span class="icon-sm">download</span> Active</a>
+                <a href="/downloads?tab=catalog" class="nav-sub-item"><span class="icon-sm">compass</span> Catalog</a>
+              </div>
+            </a>
+          </nav>
+          <button class="btn-icon" id="searchToggle"></button>
+          <button class="btn-icon" id="uploadToggle" title="Upload files"></button>
+          <button class="btn-icon" id="newFolderBtn" title="New folder"></button>
+          <span id="aiIndicator" class="ai-indicator" title="Local AI status"></span>
+          <div class="user-menu">
+            <button class="user-menu-btn" id="userMenuBtn">?</button>
+            <div class="user-dropdown" id="userDropdown">
+              <div class="user-dropdown-header" id="userDropdownHeader">Not logged in</div>
+              <div class="user-dropdown-divider"></div>
+              <a href="/profile" class="user-dropdown-item"><span class="icon-sm">user</span> Profile</a>
+              <a href="/upload" class="user-dropdown-item"><span class="icon-sm">upload</span> Uploads</a>
+              <a href="/library" class="user-dropdown-item"><span class="icon-sm">film</span> Library</a>
+              <a href="/chat" class="user-dropdown-item"><span class="icon-sm">comments</span> AI Chat</a>
+            <a href="/status" class="user-dropdown-item"><span class="icon-sm">chart-bar</span> Server Status</a>
+              <div class="user-dropdown-divider"></div>
+              <button class="user-dropdown-item" id="logoutBtn"><span class="icon-sm">sign-out</span> Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="search-container" id="searchContainer" style="display:none">
+        <div class="search-box">
+          <span class="icon-sm search-icon">search</span>
+          <input type="text" id="searchInput" placeholder="Search files...">
+          <button id="clearSearch" class="clear-btn">&times;</button>
+        </div>
+        <div id="searchResults" class="search-results"></div>
+      </div>
+    </header>
+
+    <div class="path-bar">
+      <span class="icon-sm">folder-open</span> <span id="currentPath">/</span>
+      <span id="diskInfo" class="disk-info"></span>
+    </div>
+
+    <main>
+      <div class="view-controls">
+        <div class="view-controls-group">
+          <button id="gridViewBtn" class="view-btn active"><span class="icon-sm">th</span> Grid</button>
+          <button id="listViewBtn" class="view-btn"><span class="icon-sm">list</span> List</button>
+        </div>
+        <select id="sortSelect" class="view-btn" style="padding:6px 10px;font-size:0.8rem;">
+          <option value="name">Name</option>
+          <option value="date">Date</option>
+          <option value="size">Size</option>
+          <option value="type">Type</option>
+        </select>
+      </div>
+      <div id="fileList" class="file-list grid-view">
+        <div class="loading"><span class="icon-lg">spinner</span><p>Loading files...</p></div>
+      </div>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="/" class="nav-item active"><span class="icon-md">folder</span><span>Files</span></a>
+      <a href="/downloads" class="nav-item"><span class="icon-md">download</span><span>Downloads</span></a>
+    </nav>
+  </div>
+
+  <!-- Media viewer modal -->
+  <div id="mediaModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div class="modal-body">
+        <div id="viewerContainer" class="viewer-container">
+          <div class="loading"><span class="icon-lg">spinner</span><p>Loading media...</p></div>
+        </div>
+      </div>
+      <div class="modal-controls">
+        <button id="prevBtn" class="modal-nav-btn"></button>
+        <span id="mediaInfo" class="media-info"></span>
+        <a id="downloadBtn" class="modal-nav-btn" download></a>
+        <button id="nextBtn" class="modal-nav-btn"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context menu -->
+  <div id="contextMenu" class="context-menu">
+    <button class="context-item" id="ctxPlay"><span class="icon-sm">play</span> Play</button>
+    <button class="context-item" id="ctxDownload"><span class="icon-sm">download</span> Download</button>
+    <button class="context-item" id="ctxRename"><span class="icon-sm">edit</span> Rename</button>
+    <button class="context-item" id="ctxSuggestRename"><span class="icon-sm">refresh-cw</span> Suggest Clean Rename</button>
+    <button class="context-item" id="ctxDelete"><span class="icon-sm">trash</span> Delete</button>
+    <button class="context-item" id="ctxInfo"><span class="icon-sm">info-circle</span> Info</button>
+    <div class="context-divider"></div>
+    <button class="context-item" id="ctxDownloadZip"><span class="icon-sm">download</span> Download as ZIP</button>
+  </div>
+
+  <!-- Upload overlay -->
+  <div id="uploadOverlay" class="upload-overlay" style="display:none">
+    <div class="upload-dropzone">
+      <span class="icon-lg">upload</span>
+      <h3>Drop files here or click to browse</h3>
+      <p>Files are uploaded to the current directory</p>
+      <input type="file" id="fileInput" multiple style="display:none">
+    </div>
+  </div>
+
+  <!-- Rename dialog -->
+  <div id="renameDialog" class="dialog-overlay" style="display:none">
+    <div class="dialog-box">
+      <h3>Rename</h3>
+      <input type="text" id="renameInput" class="form-input" placeholder="New name">
+      <div class="dialog-actions">
+        <button class="btn btn-ghost" onclick="closeRename()">Cancel</button>
+        <button class="btn btn-primary" id="renameConfirm">Rename</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New folder dialog -->
+  <div id="newFolderDialog" class="dialog-overlay" style="display:none">
+    <div class="dialog-box">
+      <h3>New Folder</h3>
+      <input type="text" id="folderNameInput" class="form-input" placeholder="Folder name">
+      <div class="dialog-actions">
+        <button class="btn btn-ghost" onclick="closeNewFolder()">Cancel</button>
+        <button class="btn btn-primary" id="folderCreateConfirm">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info panel -->
+  <div id="infoPanel" class="info-panel" style="display:none">
+    <div class="info-panel-header">
+      <h3>File Info</h3>
+      <button class="btn-icon info-close" onclick="closeInfo()">&times;</button>
+    </div>
+    <div id="infoContent" class="info-content"></div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="/static/player.js?v=6"></script>
+  <script src="/static/script.js?v=6"></script>
+<script src="/static/nav.js?v=7"></script>
+</body>
+</html>

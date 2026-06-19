@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#08080e">
+  <title>Downloads — OpenPlex</title>
+  <link rel="stylesheet" href="/static/style.css?v=6">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+  <header class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1><span class="icon-sm">download</span> Downloads</h1>
+      </div>
+      <div class="header-nav">
+        <nav class="main-nav" id="mainNav">
+          <a href="/" class="nav-link" data-page="files"><span class="icon-sm">folder</span><span class="nav-label">Files</span></a>
+          <a href="/library" class="nav-link" data-page="library"><span class="icon-sm">film</span><span class="nav-label">Library</span></a>
+          <a href="/downloads" class="nav-link active" data-page="downloads"><span class="icon-sm">download</span><span class="nav-label">Downloads</span></a>
+        </nav>
+        <div class="user-menu">
+          <button class="user-menu-btn" id="userMenuBtn">?</button>
+            <div class="user-dropdown" id="userDropdown">
+              <div class="user-dropdown-header" id="userDropdownHeader">Not logged in</div>
+              <div class="user-dropdown-divider"></div>
+              <a href="/profile" class="user-dropdown-item"><span class="icon-sm">user</span> Profile</a>
+              <a href="/upload" class="user-dropdown-item"><span class="icon-sm">upload</span> Uploads</a>
+              <a href="/library" class="user-dropdown-item"><span class="icon-sm">film</span> Library</a>
+              <a href="/status" class="user-dropdown-item"><span class="icon-sm">chart-bar</span> Server Status</a>
+              <div class="user-dropdown-divider"></div>
+              <button class="user-dropdown-item" id="logoutBtn"><span class="icon-sm">sign-out</span> Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dl-page">
+    <div class="dl-tabs">
+      <button class="dl-tab active" data-tab="catalog"><span class="icon-sm">compass</span> Catalog</button>
+      <button class="dl-tab" data-tab="active-dl"><span class="icon-sm">list</span> Downloads</button>
+    </div>
+
+    <div id="tabCatalog">
+      <div class="dl-toolbar">
+        <div class="dl-search-wrap" style="position:relative;">
+          <span class="icon-sm search-icon">search</span>
+          <input type="text" id="catalogSearch" placeholder="Search catalog..." autocomplete="off">
+          <div id="searchHistory" class="dl-dropdown" style="display:none;"></div>
+        </div>
+        <button class="btn btn-primary" id="refreshCatalog"><span class="icon-sm">sync</span> Refresh</button>
+        <button class="btn btn-ghost" id="toggleFiltersBtn"><span class="icon-sm">sliders</span></button>
+        <button class="btn btn-secondary" id="manualDownloadBtn"><span class="icon-sm">link</span> Manual</button>
+      </div>
+      <div id="filterBar" class="dl-filter-bar" style="display:none;">
+        <select id="filterType"><option value="">All types</option><option value="movie">Movies</option><option value="series">Series</option></select>
+        <input type="number" id="filterYearMin" placeholder="Year min" min="1900" max="2099" style="width:80px;">
+        <input type="number" id="filterYearMax" placeholder="Year max" min="1900" max="2099" style="width:80px;">
+        <input type="number" id="filterRatingMin" placeholder="Rating min" min="0" max="10" step="0.1" style="width:90px;">
+        <input type="number" id="filterRatingMax" placeholder="Rating max" min="0" max="10" step="0.1" style="width:90px;">
+        <select id="filterSortBy"><option value="id">Archive order</option><option value="imdb_rating">Rating</option><option value="year">Year</option><option value="title">Title</option></select>
+        <select id="filterSortOrder"><option value="asc">Asc</option><option value="desc">Desc</option></select>
+        <button class="btn btn-ghost btn-sm" id="filterFavs"><span class="icon-sm">heart</span> Favs</button>
+      </div>
+      <div id="catalogResults"></div>
+    </div>
+
+    <div id="tabActive" style="display:none;">
+      <div id="dlStatsBar" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:var(--glass-bg);border-radius:10px;border:1px solid var(--glass-border);font-size:0.82rem;"></div>
+      <div class="dl-toolbar">
+        <div class="dl-search-wrap" style="position:relative;">
+          <span class="icon-sm search-icon">search</span>
+          <input type="text" id="downloadSearch" placeholder="Filter downloads..." autocomplete="off">
+        </div>
+        <select id="dlStatusFilter" style="width:auto;min-width:120px;">
+          <option value="">All statuses</option>
+          <option value="downloading,active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="error">Failed</option>
+          <option value="paused">Paused</option>
+          <option value="queued,waiting">Queued</option>
+          <option value="interrupted">Interrupted</option>
+        </select>
+        <select id="dlSortBy" style="width:auto;min-width:100px;">
+          <option value="created_at">Date</option>
+          <option value="title">Title</option>
+          <option value="progress_pct">Progress</option>
+          <option value="status">Status</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="refreshDownloadsBtn"><span class="icon-sm">sync</span></button>
+      </div>
+      <div id="downloadList"></div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="/static/player.js?v=6"></script>
+  <script src="/static/download-manager.js?v=6"></script>
+<script src="/static/nav.js?v=7"></script>
+</body>
+</html>

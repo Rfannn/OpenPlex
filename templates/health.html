@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health — OpenPlex</title>
+  <link rel="stylesheet" href="/static/style.css?v=6" />
+  <link rel="manifest" href="/static/manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+  <style>
+    .health-page { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .health-page h1 { font-size: 1.6rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .health-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .health-card {
+      background: var(--glass-bg); border-radius: 12px; padding: 16px;
+      backdrop-filter: blur(12px); border: 1px solid var(--glass-border);
+    }
+    .health-card.health-fail { border-color: rgba(239, 68, 68, 0.4); }
+    .health-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .health-card-header h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+    .health-indicator {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .health-indicator.green { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+    .health-indicator.red { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); }
+    .health-indicator-small {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px;
+    }
+    .health-indicator-small.green { background: #22c55e; }
+    .health-indicator-small.red { background: #ef4444; }
+    .health-card-body { font-size: 0.85rem; color: var(--text-muted); }
+    .health-detail { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .health-bar {
+      height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px;
+      margin-top: 8px; overflow: hidden;
+    }
+    .health-bar-fill {
+      height: 100%; background: var(--accent); border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    .health-timestamp {
+      text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-muted);
+    }
+    .health-error {
+      text-align: center; padding: 60px 20px;
+    }
+    .health-error h2 { font-size: 1.3rem; margin-bottom: 12px; }
+    .health-error p { color: var(--text-muted); margin-bottom: 20px; }
+    .reload-btn { margin: 20px auto; display: block; }
+    .nav-bar {
+      display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .nav-bar a {
+      padding: 6px 14px; border-radius: 8px; background: var(--glass-bg);
+      font-size: 0.85rem; color: var(--text); text-decoration: none;
+      border: 1px solid var(--glass-border);
+    }
+    .nav-bar a:hover { background: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body>
+  <div class="glass-container health-page">
+    <nav class="nav-bar">
+      <a href="/">Home</a>
+      <a href="/library">Files</a>
+      <a href="/downloads">Downloads</a>
+      <a href="/status">Status</a>
+      <a href="/health">Health</a>
+    </nav>
+
+    <h1>System Health</h1>
+    <div id="health-content">
+      <div class="health-error">
+        <p>Loading health data...</p>
+      </div>
+    </div>
+
+    <button class="glass-btn primary reload-btn" onclick="location.reload()">Refresh Now</button>
+  </div>
+
+  <script type="module">
+    import { initHealth } from '/static/src/health.js';
+    document.addEventListener('DOMContentLoaded', initHealth);
+  </script>
+<script src="/static/nav.js?v=7"></script>
+</body>
+</html>

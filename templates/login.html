@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#08080e">
+  <title>Login — OpenPlex</title>
+  <link rel="stylesheet" href="/static/style.css?v=6">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body class="auth-page">
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+  <div class="auth-card">
+    <h1>OpenPlex</h1>
+    <p>Sign in to your account</p>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" class="form-input" id="username" placeholder="Enter username" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" class="form-input" id="password" placeholder="Enter password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="form-submit" id="loginBtn">Sign In</button>
+    </form>
+    <div class="auth-footer">
+      Don't have an account? <a href="/register">Register</a>
+    </div>
+    <div id="toastContainer" class="toast-container"></div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+    function toast(msg, type = 'error') {
+      const container = document.getElementById('toastContainer');
+      if (!container) { alert(msg); return; }
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<span class="toast-msg">${msg.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>`;
+      container.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(60px)'; t.style.transition = 'all 0.3s'; setTimeout(() => t.remove(), 300); }, 4000);
+    }
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true; btn.textContent = 'Signing in...';
+      try {
+        const r = await fetch(API + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+          })
+        });
+        const d = await r.json();
+        if (r.ok) {
+          localStorage.setItem('token', d.token);
+          localStorage.setItem('user', JSON.stringify(d.user));
+          window.location.href = '/';
+        } else {
+          toast(d.detail || 'Login failed');
+        }
+      } catch (err) {
+        toast('Connection error');
+      }
+      btn.disabled = false; btn.textContent = 'Sign In';
+    });
+  </script>
+</body>
+</html>

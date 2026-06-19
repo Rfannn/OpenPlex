@@ -1,0 +1,27 @@
+services:
+  media-server:
+    build: .
+    container_name: media-server
+    restart: unless-stopped
+
+    # Host port : Container port
+    #   Defaults: host=80, container=8185
+    #   Override via env vars: HOST_PORT / PORT
+    ports:
+      - "${HOST_PORT:-80}:${PORT:-8185}"
+
+    volumes:
+      # Media files — mount your external HDD or media directory here
+      - /mnt/hdd/media:/mnt/hdd/media
+      # SQLite database (persist across container restarts)
+      - ./data:/app/data
+      # Thumbnail cache (generated thumbnails)
+      - ./thumbnails:/app/thumbnails
+      # Environment config — read by app/config.py at startup
+      - ./.env:/app/.env
+
+    # Pass environment variables from .env to the container
+    # This is in addition to the volume mount above; both are needed:
+    #   - volume mount → app reads .env directly for config
+    #   - env_file     → OS env vars (override .env values, used by config.py)
+    env_file: .env

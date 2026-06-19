@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08080e">
+  <title>Profile — OpenPlex</title>
+  <link rel="stylesheet" href="/static/style.css?v=6">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+
+  <header class="lib-header">
+    <div class="lib-header-content">
+      <div class="lib-brand">
+        <h1><span class="icon-sm">user</span> Profile</h1>
+      </div>
+      <nav class="main-nav" id="mainNav">
+        <a href="/" class="nav-link" data-page="files"><span class="icon-sm">folder</span><span class="nav-label">Files</span></a>
+        <a href="/library" class="nav-link" data-page="library"><span class="icon-sm">film</span><span class="nav-label">Library</span></a>
+        <a href="/downloads" class="nav-link" data-page="downloads"><span class="icon-sm">download</span><span class="nav-label">Downloads</span></a>
+      </nav>
+      <div class="user-menu">
+        <button class="user-menu-btn" id="userMenuBtn">?</button>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-header" id="userDropdownHeader">Not logged in</div>
+          <div class="user-dropdown-divider"></div>
+          <a href="/upload" class="user-dropdown-item"><span class="icon-sm">upload</span> Uploads</a>
+          <a href="/status" class="user-dropdown-item"><span class="icon-sm">chart-bar</span> Server Status</a>
+          <div class="user-dropdown-divider"></div>
+          <button class="user-dropdown-item" id="logoutBtn"><span class="icon-sm">sign-out</span> Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding: 20px; max-width: 600px; margin: 0 auto;">
+    <div class="profile-card" style="background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:32px;">
+      <div class="profile-avatar-section" style="text-align:center;margin-bottom:32px;">
+        <div class="profile-avatar-preview" id="profileAvatarPreview" style="width:96px;height:96px;border-radius:50%;background:var(--glass-strong);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:700;color:var(--text);border:3px solid var(--glass-border-hover);"></div>
+        <h2 id="profileDisplayName" style="font-size:1.4rem;font-weight:600;margin:0 0 4px;">-</h2>
+        <p id="profileUsername" style="color:var(--text-muted);font-size:0.85rem;margin:0;">@username</p>
+      </div>
+
+      <div class="profile-section" style="margin-bottom:24px;">
+        <label style="display:block;font-size:0.85rem;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">Display Name</label>
+        <input type="text" id="profileDisplayNameInput" class="lib-search-input" style="width:100%;padding:10px 14px;border-radius:var(--radius-sm);">
+      </div>
+
+      <div class="profile-section" style="margin-bottom:24px;">
+        <label style="display:block;font-size:0.85rem;font-weight:500;margin-bottom:12px;color:var(--text-secondary);">Avatar</label>
+        <div class="profile-avatar-grid" id="profileAvatarGrid" style="display:grid;grid-template-columns:repeat(auto-fill,48px);gap:8px;"></div>
+      </div>
+
+      <button class="lib-btn lib-btn-primary" id="profileSaveBtn" style="width:100%;justify-content:center;padding:12px;">Save Changes</button>
+    </div>
+  </main>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="/static/profile.js?v=6"></script>
+<script src="/static/nav.js?v=7"></script>
+</body>
+</html>
