@@ -69,12 +69,13 @@
 - [x] Step 54: Fix library search (expanded to year, title_type, genres fields)
 - [x] Step 55: Add ruff config + Makefile (linting, formatting, run targets)
 - [x] Step 56: Git repo init + first commit to github.com/Rfannn/OpenPlex
-- [ ] Step 57: Player/subtitle fixes (show sub button, local subtitle matching)
-- [ ] Step 58: Tests (auth + catalog + downloads)
-- [ ] Step 59: Alembic baseline migration
-- [ ] Step 60: Code splitting (downloads_utils.py, library_utils.py)
-- [ ] Step 61: AI-powered downloads (action-tag interception in chat)
-- [ ] Step 62: README + documentation + screenshots
+- [ ] Step 57: Professional UI overhaul (animations, effects, toasts, micro-interactions, glassmorphism polish)
+- [ ] Step 58: Player/subtitle fixes (show sub button, local subtitle matching)
+- [ ] Step 59: Tests (auth + catalog + downloads)
+- [ ] Step 60: Alembic baseline migration
+- [ ] Step 61: Code splitting (downloads_utils.py, library_utils.py)
+- [ ] Step 62: AI-powered downloads (action-tag interception in chat)
+- [ ] Step 63: README + documentation + screenshots
 
 ---
 

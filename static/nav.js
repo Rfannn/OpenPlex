@@ -1,6 +1,4 @@
-// OpenPlex — Shared Navigation Component
-// Injects a consistent nav bar into every page
-
+// OpenPlex — Unified Navigation Component
 const OpenPlexNav = {
   pages: [
     { href: '/', icon: 'folder', label: 'Files', id: 'files' },
@@ -38,13 +36,14 @@ const OpenPlexNav = {
     return `
     <header class="op-header" id="opHeader">
       <div class="op-header-inner">
-        <a href="/" class="op-brand">
-          <span class="op-brand-icon">${this._svg('plex')}</span>
-          <span class="op-brand-text">OpenPlex</span>
-        </a>
-        <nav class="op-nav" id="opNav">
-          ${navLinks}
-        </nav>
+        <div class="op-header-left">
+          <button class="op-back-btn" id="opBackBtn" style="display:none" title="Go back">${this._svg('arrow-left')}</button>
+          <a href="/" class="op-brand">
+            <span class="op-brand-icon">${this._svg('plex')}</span>
+            <span class="op-brand-text">OpenPlex</span>
+          </a>
+        </div>
+        <nav class="op-nav" id="opNav">${navLinks}</nav>
         <div class="op-header-right">
           <button class="op-icon-btn" id="opSearchBtn" title="Search">${this._svg('search')}</button>
           <div class="op-user-menu">
@@ -77,25 +76,22 @@ const OpenPlexNav = {
   },
 
   inject() {
-    // Remove existing headers/navs that aren't ours
-    document.querySelectorAll('.header, .lib-header, .chat-header, .bottom-nav').forEach(el => el.remove());
+    // Remove old nav elements
+    document.querySelectorAll('.header, .lib-header, .chat-header, .bottom-nav, .header-content, .header-nav, .header-left, .lib-header-content, .lib-header-bg, .lib-brand').forEach(el => el.remove());
 
-    // Inject our nav at the start of body
-    const navHtml = this.render();
     const wrapper = document.createElement('div');
     wrapper.id = 'opNavWrapper';
-    wrapper.innerHTML = navHtml;
+    wrapper.innerHTML = this.render();
     document.body.insertBefore(wrapper, document.body.firstChild);
 
-    // Add padding-top to main content
-    const style = document.createElement('style');
-    style.textContent = `
-      body { padding-top: 56px; padding-bottom: 64px; }
-      @media (min-width: 769px) { body { padding-bottom: 0; } }
-    `;
-    document.head.appendChild(style);
+    // Show back button on non-home pages
+    const backBtn = document.getElementById('opBackBtn');
+    if (backBtn && window.location.pathname !== '/') {
+      backBtn.style.display = 'flex';
+      backBtn.addEventListener('click', () => window.history.back());
+    }
 
-    // Wire up user menu
+    // Wire user menu
     const userBtn = document.getElementById('opUserBtn');
     const dropdown = document.getElementById('opDropdown');
     if (userBtn && dropdown) {
@@ -106,7 +102,7 @@ const OpenPlexNav = {
       document.addEventListener('click', () => dropdown.classList.remove('open'));
     }
 
-    // Wire up logout
+    // Wire logout
     const logoutBtn = document.getElementById('opLogoutBtn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
@@ -129,12 +125,12 @@ const OpenPlexNav = {
       'upload': '<path d="M12 15V3m0 0l-4 4m4-4l4 4M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
       'chart-bar': '<rect x="3" y="12" width="4" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="10" y="6" width="4" height="15" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>',
       'sign-out': '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+      'arrow-left': '<path d="M19 12H5m0 0l7 7m-7-7l7-7" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     };
     return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">${icons[name] || ''}</svg>`;
   }
 };
 
-// Auto-inject on DOMContentLoaded
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => OpenPlexNav.inject());
 } else {
