@@ -1,7 +1,7 @@
-# Media Gallery — Milestone Tracker
+# OpenPlex — Milestone Tracker
 
 ## Current Status
-🟢 **Phase**: Build — All P0/P1/P2 done; systemd running 24/7; seeking/transcode fixed; upload + profile + avatars live
+🟢 **Phase**: Build — All P0/P1/P2 done; Rebranded to OpenPlex; unified nav; multi-source scrapers; systemd running 24/7
 
 ---
 
@@ -59,6 +59,22 @@
 - [x] Step 46: Profile page (/profile) with display name editor
 - [x] Step 47: 15 pre-defined color avatars (SVG) with picker on profile page
 - [x] Step 48: Unified user dropdown across all pages (Profile, Uploads, Files, Library, Downloads, Status)
+
+### P3 — Rebrand & Quality (In Progress)
+- [x] Step 49: Rebrand Media Gallery → OpenPlex (all templates, manifest, Python, deploy)
+- [x] Step 50: Unified navigation component (static/nav.js) — desktop top nav + mobile bottom nav
+- [x] Step 51: Multi-source DonyayeSerial scrapers (primary + secondary archive fallback)
+- [x] Step 52: Remove verify=False from scraper HTTP clients (security hardening)
+- [x] Step 53: Fix catalog search (return partial DB results on scraper timeout)
+- [x] Step 54: Fix library search (expanded to year, title_type, genres fields)
+- [x] Step 55: Add ruff config + Makefile (linting, formatting, run targets)
+- [x] Step 56: Git repo init + first commit to github.com/Rfannn/OpenPlex
+- [ ] Step 57: Player/subtitle fixes (show sub button, local subtitle matching)
+- [ ] Step 58: Tests (auth + catalog + downloads)
+- [ ] Step 59: Alembic baseline migration
+- [ ] Step 60: Code splitting (downloads_utils.py, library_utils.py)
+- [ ] Step 61: AI-powered downloads (action-tag interception in chat)
+- [ ] Step 62: README + documentation + screenshots
 
 ---
 

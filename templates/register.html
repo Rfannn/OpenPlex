@@ -9,6 +9,7 @@
   <link rel="manifest" href="/static/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="/static/effects.css?v=7">
 </head>
 <body class="auth-page">
 <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
@@ -75,5 +76,6 @@
       btn.disabled = false; btn.textContent = 'Create Account';
     });
   </script>
+<script src="/static/toast.js?v=7"></script>
 </body>
 </html>
