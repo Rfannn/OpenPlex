@@ -45,6 +45,7 @@ const OpenPlexNav = {
           <span class="op-logo-text">OpenPlex</span>
         </a>
         <div class="op-right">
+          <button class="op-search-btn" id="opSearch" title="Search">${this._svg('search')}</button>
           <div class="op-user">
             <button class="op-avatar" id="opAvatar">${initial}</button>
             <div class="op-menu" id="opMenu">
@@ -97,6 +98,89 @@ const OpenPlexNav = {
       localStorage.removeItem('user');
       window.location.href = '/login';
     };
+
+    // Search overlay
+    const searchBtn = document.getElementById('opSearch');
+    if (searchBtn) {
+      const overlay = document.createElement('div');
+      overlay.className = 'op-search-overlay';
+      overlay.id = 'opSearchOverlay';
+      overlay.innerHTML = `
+        <div class="op-search-backdrop"></div>
+        <div class="op-search-box">
+          <span class="op-search-icon">${this._svg('search')}</span>
+          <input type="text" id="opSearchInput" placeholder="Search files, library, downloads..." autocomplete="off" autofocus>
+          <kbd class="op-search-esc">ESC</kbd>
+        </div>
+        <div class="op-search-results" id="opSearchResults"></div>
+      `;
+      document.body.appendChild(overlay);
+
+      searchBtn.onclick = () => {
+        overlay.classList.add('open');
+        setTimeout(() => document.getElementById('opSearchInput').focus(), 100);
+      };
+      overlay.querySelector('.op-search-backdrop').onclick = () => overlay.classList.remove('open');
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          overlay.classList.add('open');
+          setTimeout(() => document.getElementById('opSearchInput').focus(), 100);
+        }
+        if (e.key === 'Escape') overlay.classList.remove('open');
+      });
+
+      // Live search
+      let searchTimer = null;
+      document.getElementById('opSearchInput').addEventListener('input', (e) => {
+        const q = e.target.value.trim();
+        clearTimeout(searchTimer);
+        if (q.length < 2) {
+          document.getElementById('opSearchResults').innerHTML = '';
+          return;
+        }
+        searchTimer = setTimeout(() => this._doSearch(q), 250);
+      });
+    }
+  },
+
+  async _doSearch(q) {
+    const results = document.getElementById('opSearchResults');
+    results.innerHTML = '<div class="op-search-loading">Searching...</div>';
+    try {
+      // Search library
+      const libR = await fetch(`/api/library/search?q=${encodeURIComponent(q)}&limit=5`);
+      const libD = await libR.json();
+      // Search files
+      const fileR = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const fileD = await fileR.json();
+
+      let html = '';
+      if (libD.results && libD.results.length) {
+        html += '<div class="op-search-group">Library</div>';
+        libD.results.forEach(r => {
+          html += `<a href="/library" class="op-search-item" onclick="document.getElementById('opSearchOverlay').classList.remove('open')">
+            <span class="op-search-type">🎬</span>
+            <div><div class="op-search-name">${r.title || ''}</div>
+            <div class="op-search-meta">${[r.year, (r.genres||[]).slice(0,2).join(', ')].filter(Boolean).join(' · ')}</div></div>
+          </a>`;
+        });
+      }
+      if (fileD.results && fileD.results.length) {
+        html += '<div class="op-search-group">Files</div>';
+        fileD.results.slice(0, 5).forEach(f => {
+          html += `<a href="/" class="op-search-item" onclick="document.getElementById('opSearchOverlay').classList.remove('open')">
+            <span class="op-search-type">${f.type === 'video' ? '🎥' : f.type === 'audio' ? '🎵' : f.type === 'image' ? '🖼️' : '📄'}</span>
+            <div><div class="op-search-name">${f.name}</div>
+            <div class="op-search-meta">${f.path || ''}</div></div>
+          </a>`;
+        });
+      }
+      if (!html) html = '<div class="op-search-empty">No results found</div>';
+      results.innerHTML = html;
+    } catch {
+      results.innerHTML = '<div class="op-search-empty">Search failed</div>';
+    }
   },
 
   _svg(n) {

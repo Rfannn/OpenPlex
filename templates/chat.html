@@ -12,7 +12,7 @@
 <body>
 <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
 <style>
-   .chat-page { max-width: 900px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; height: 100dvh; box-sizing: border-box; }
+   .chat-page { max-width: 900px; margin: 0 auto; padding: 0 16px 16px; display: flex; flex-direction: column; height: calc(100dvh - 56px); box-sizing: border-box; }
    .chat-header { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--glass-border); margin-bottom: 12px; }
    .chat-header h1 { font-size: 1.1rem; font-weight: 600; }
    .chat-header .ai-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; transition: background 0.3s; }
