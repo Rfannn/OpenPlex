@@ -1,4 +1,4 @@
-// OpenPlex — Unified Navigation Component
+// OpenPlex — Unified Navigation
 const OpenPlexNav = {
   pages: [
     { href: '/', icon: 'folder', label: 'Files', id: 'files' },
@@ -12,110 +12,96 @@ const OpenPlexNav = {
   },
 
   isActive(pageId) {
-    const path = window.location.pathname;
-    if (pageId === 'files' && path === '/') return true;
-    if (pageId === 'library' && path.startsWith('/library')) return true;
-    if (pageId === 'downloads' && path.startsWith('/downloads')) return true;
-    if (pageId === 'chat' && path.startsWith('/chat')) return true;
+    const p = window.location.pathname;
+    if (pageId === 'files' && p === '/') return true;
+    if (pageId === 'library' && p.startsWith('/library')) return true;
+    if (pageId === 'downloads' && p.startsWith('/downloads')) return true;
+    if (pageId === 'chat' && p.startsWith('/chat')) return true;
     return false;
   },
 
   render() {
     const user = this.getUser();
-    const navLinks = this.pages.map(p => {
-      const active = this.isActive(p.id) ? ' active' : '';
-      return `<a href="${p.href}" class="nav-link${active}" data-page="${p.id}">
-        <span class="nav-icon">${this._svg(p.icon)}</span>
-        <span class="nav-label">${p.label}</span>
+    const navLinks = this.pages.map(pg => {
+      const a = this.isActive(pg.id) ? ' active' : '';
+      return `<a href="${pg.href}" class="op-link${a}">
+        <span class="op-link-icon">${this._svg(pg.icon)}</span>
+        <span class="op-link-text">${pg.label}</span>
       </a>`;
     }).join('');
 
-    const userInitial = user ? (user.display_name || user.username || '?')[0].toUpperCase() : '?';
-    const userName = user ? (user.display_name || user.username) : 'Not logged in';
+    const initial = user ? (user.display_name || user.username || '?')[0].toUpperCase() : '?';
+    const name = user ? (user.display_name || user.username) : 'Guest';
 
     return `
-    <header class="op-header" id="opHeader">
-      <div class="op-header-inner">
-        <div class="op-header-left">
-          <button class="op-back-btn" id="opBackBtn" style="display:none" title="Go back">${this._svg('arrow-left')}</button>
-          <a href="/" class="op-brand">
-            <span class="op-brand-icon">${this._svg('plex')}</span>
-            <span class="op-brand-text">OpenPlex</span>
-          </a>
+    <header class="op-bar">
+      <div class="op-bar-inner">
+        <div class="op-left">
+          <button class="op-back" id="opBack" style="display:none">${this._svg('arrow-left')}</button>
+          <nav class="op-links">${navLinks}</nav>
         </div>
-        <nav class="op-nav" id="opNav">${navLinks}</nav>
-        <div class="op-header-right">
-          <button class="op-icon-btn" id="opSearchBtn" title="Search">${this._svg('search')}</button>
-          <div class="op-user-menu">
-            <button class="op-user-btn" id="opUserBtn">
-              <span class="op-user-avatar">${userInitial}</span>
-            </button>
-            <div class="op-dropdown" id="opDropdown">
-              <div class="op-dropdown-header">${userName}</div>
-              <div class="op-dropdown-divider"></div>
-              <a href="/profile" class="op-dropdown-item">${this._svg('user')} Profile</a>
-              <a href="/upload" class="op-dropdown-item">${this._svg('upload')} Uploads</a>
-              <a href="/status" class="op-dropdown-item">${this._svg('chart-bar')} Server Status</a>
-              <div class="op-dropdown-divider"></div>
-              <button class="op-dropdown-item" id="opLogoutBtn">${this._svg('sign-out')} Logout</button>
+        <a href="/" class="op-logo">
+          <span class="op-logo-glow"></span>
+          <span class="op-logo-text">OpenPlex</span>
+        </a>
+        <div class="op-right">
+          <div class="op-user">
+            <button class="op-avatar" id="opAvatar">${initial}</button>
+            <div class="op-menu" id="opMenu">
+              <div class="op-menu-head">${name}</div>
+              <div class="op-menu-sep"></div>
+              <a href="/profile" class="op-menu-item">${this._svg('user')} Profile</a>
+              <a href="/upload" class="op-menu-item">${this._svg('upload')} Uploads</a>
+              <a href="/status" class="op-menu-item">${this._svg('chart-bar')} Server</a>
+              <div class="op-menu-sep"></div>
+              <button class="op-menu-item" id="opLogout">${this._svg('sign-out')} Logout</button>
             </div>
           </div>
         </div>
       </div>
     </header>
-
-    <nav class="op-bottom-nav" id="opBottomNav">
-      ${this.pages.map(p => {
-        const active = this.isActive(p.id) ? ' active' : '';
-        return `<a href="${p.href}" class="op-bottom-item${active}">
-          <span class="op-bottom-icon">${this._svg(p.icon)}</span>
-          <span class="op-bottom-label">${p.label}</span>
+    <nav class="op-tab">
+      ${this.pages.map(pg => {
+        const a = this.isActive(pg.id) ? ' active' : '';
+        return `<a href="${pg.href}" class="op-tab-item${a}">
+          <span class="op-tab-icon">${this._svg(pg.icon)}</span>
+          <span class="op-tab-label">${pg.label}</span>
         </a>`;
       }).join('')}
     </nav>`;
   },
 
   inject() {
-    // Remove old nav elements
-    document.querySelectorAll('.header, .lib-header, .chat-header, .bottom-nav, .header-content, .header-nav, .header-left, .lib-header-content, .lib-header-bg, .lib-brand').forEach(el => el.remove());
+    document.querySelectorAll('.header, .lib-header, .chat-header, .bottom-nav, .header-content, .header-nav, .header-left, .lib-header-content, .lib-header-bg, .lib-brand').forEach(e => e.remove());
+    const w = document.createElement('div');
+    w.id = 'opNavWrap';
+    w.innerHTML = this.render();
+    document.body.insertBefore(w, document.body.firstChild);
 
-    const wrapper = document.createElement('div');
-    wrapper.id = 'opNavWrapper';
-    wrapper.innerHTML = this.render();
-    document.body.insertBefore(wrapper, document.body.firstChild);
-
-    // Show back button on non-home pages
-    const backBtn = document.getElementById('opBackBtn');
-    if (backBtn && window.location.pathname !== '/') {
-      backBtn.style.display = 'flex';
-      backBtn.addEventListener('click', () => window.history.back());
+    const back = document.getElementById('opBack');
+    if (back && window.location.pathname !== '/') {
+      back.style.display = 'flex';
+      back.onclick = () => window.history.back();
     }
 
-    // Wire user menu
-    const userBtn = document.getElementById('opUserBtn');
-    const dropdown = document.getElementById('opDropdown');
-    if (userBtn && dropdown) {
-      userBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdown.classList.toggle('open');
-      });
-      document.addEventListener('click', () => dropdown.classList.remove('open'));
+    const av = document.getElementById('opAvatar');
+    const menu = document.getElementById('opMenu');
+    if (av && menu) {
+      av.onclick = (e) => { e.stopPropagation(); menu.classList.toggle('open'); };
+      document.onclick = () => menu.classList.remove('open');
     }
 
-    // Wire logout
-    const logoutBtn = document.getElementById('opLogoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-      });
-    }
+    const lo = document.getElementById('opLogout');
+    if (lo) lo.onclick = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    };
   },
 
-  _svg(name) {
-    const icons = {
-      'plex': '<rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 8v8M8 12h4M16 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  _svg(n) {
+    const i = {
+      'plex': '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 6v12M12 12l5-3M12 12l5 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
       'folder': '<path d="M2 6a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
       'film': '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M7 3v18M17 3v18M3 7h4M3 12h4M3 17h4M17 7h4M17 12h4M17 17h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>',
       'download': '<path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -127,12 +113,8 @@ const OpenPlexNav = {
       'sign-out': '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
       'arrow-left': '<path d="M19 12H5m0 0l7 7m-7-7l7-7" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     };
-    return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">${icons[name] || ''}</svg>`;
+    return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">${i[n]||''}</svg>`;
   }
 };
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => OpenPlexNav.inject());
-} else {
-  OpenPlexNav.inject();
-}
+document.readyState==='loading' ? document.addEventListener('DOMContentLoaded',()=>OpenPlexNav.inject()) : OpenPlexNav.inject();
