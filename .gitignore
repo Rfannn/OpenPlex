@@ -45,6 +45,7 @@ static/covers/*.jpg
 
 # Node
 node_modules/
+package-lock.json
 
 # Windows binaries (should not be in repo)
 aria2c.exe
@@ -64,3 +65,19 @@ tmp_enrich.*
 
 # Docker
 docker-compose.override.yml
+
+# Skills folders (local only, not in repo)
+.agent/
+.claude/
+.codebuddy/
+.codex/
+.continue/
+.cursor/
+.gemini/
+.github/prompts/
+.kiro/
+.opencode/
+.qoder/
+.roo/
+.trae/
+.windsurf/

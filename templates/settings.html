@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#08080e">
+  <title>Settings — OpenPlex</title>
+  <link rel="stylesheet" href="/static/style.css?v=7">
+  <link rel="stylesheet" href="/static/effects.css?v=7">
+  <link rel="manifest" href="/static/manifest.json">
+</head>
+<body>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
+
+<div class="settings-page">
+  <div class="settings-header">
+    <h1 class="gradient-text">Settings</h1>
+    <p class="settings-subtitle">Configure your OpenPlex server</p>
+  </div>
+
+  <div class="settings-grid" id="settingsGrid">
+    <div class="settings-loading">
+      <div class="skeleton skeleton-text" style="width:60%"></div>
+      <div class="skeleton skeleton-text" style="width:80%"></div>
+      <div class="skeleton skeleton-text" style="width:40%"></div>
+    </div>
+  </div>
+
+  <div class="settings-actions" id="settingsActions" style="display:none">
+    <button class="btn btn-ghost" onclick="resetSettings()">Reset</button>
+    <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin;
+let token = localStorage.getItem('token');
+if (!token) { window.location.href = '/login'; }
+
+let originalSettings = {};
+
+async function loadSettings() {
+  try {
+    const r = await fetch(API + '/api/settings', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    originalSettings = JSON.parse(JSON.stringify(d.settings));
+    renderSettings(d.settings);
+  } catch (e) {
+    document.getElementById('settingsGrid').innerHTML = `<div class="settings-error">Failed to load: ${e.message}</div>`;
+  }
+}
+
+function renderSettings(s) {
+  const sections = [
+    { key: 'server', title: 'Server', icon: '🖥️', fields: [
+      { key: 'host', label: 'Host', type: 'text' },
+      { key: 'port', label: 'Port', type: 'number' },
+      { key: 'debug', label: 'Debug Mode', type: 'toggle' },
+      { key: 'media_root', label: 'Media Root Path', type: 'text' },
+    ]},
+    { key: 'ai', title: 'AI Configuration', icon: '🤖', fields: [
+      { key: 'agnes_api_key', label: 'Agnes AI API Key', type: 'password', hint: 'Primary AI service' },
+      { key: 'agnes_model', label: 'Agnes Model', type: 'text', hint: 'e.g. agnes-2.0-flash' },
+      { key: 'local_ai_url', label: 'Local AI URL', type: 'text', hint: 'llama-server endpoint' },
+      { key: 'local_ai_model', label: 'Local AI Model', type: 'text', hint: 'e.g. qwen2.5-3b' },
+      { key: 'local_ai_auto_start', label: 'Auto-start Local AI', type: 'toggle', hint: 'Start llama-server when Agnes is down' },
+      { key: 'majidapi_token', label: 'MajidAPI Token', type: 'password', hint: 'For AI categorization' },
+    ]},
+    { key: 'metadata', title: 'Metadata APIs', icon: '🎬', fields: [
+      { key: 'tmdb_api_key', label: 'TMDB API Key', type: 'password', hint: 'Primary metadata source' },
+      { key: 'omdb_api_key', label: 'OMDb API Key', type: 'password', hint: 'Backup metadata' },
+      { key: 'fanart_api_key', label: 'Fanart.tv API Key', type: 'password', hint: 'High-res artwork' },
+      { key: 'tvdb_api_key', label: 'TVDb API Key', type: 'password', hint: 'Enhanced TV metadata' },
+    ]},
+    { key: 'subtitles', title: 'Subtitles', icon: '💬', fields: [
+      { key: 'opensubtitles_username', label: 'OpenSubtitles Username', type: 'text' },
+      { key: 'opensubtitles_password', label: 'OpenSubtitles Password', type: 'password' },
+      { key: 'opensubtitles_api_key', label: 'OpenSubtitles API Key', type: 'password' },
+    ]},
+    { key: 'catalog', title: 'Catalog', icon: '📚', fields: [
+      { key: 'auto_refresh', label: 'Auto Refresh Catalog', type: 'toggle' },
+      { key: 'refresh_interval_hours', label: 'Refresh Interval (hours)', type: 'number' },
+    ]},
+    { key: 'downloads', title: 'Downloads', icon: '⬇️', fields: [
+      { key: 'aria2_rpc_port', label: 'aria2 RPC Port', type: 'number' },
+    ]},
+    { key: 'display', title: 'Display & Storage', icon: '🎨', fields: [
+      { key: 'cors_origins', label: 'CORS Origins', type: 'text', hint: 'Comma-separated, or *' },
+      { key: 'thumbnail_cache_dir', label: 'Thumbnail Cache Dir', type: 'text' },
+      { key: 'min_disk_free_bytes', label: 'Min Free Disk (bytes)', type: 'number', hint: 'Default: 500000000 (500MB)' },
+    ]},
+  ];
+
+  const grid = document.getElementById('settingsGrid');
+  grid.innerHTML = sections.map(sec => `
+    <div class="settings-section">
+      <div class="settings-section-header">
+        <span class="settings-section-icon">${sec.icon}</span>
+        <h2>${sec.title}</h2>
+      </div>
+      <div class="settings-fields">
+        ${sec.fields.map(f => {
+          const val = s[sec.key]?.[f.key] ?? '';
+          const isSecret = f.type === 'password' && val && val !== '***';
+          if (f.type === 'toggle') {
+            return `<div class="settings-field">
+              <label class="settings-label">${f.label}</label>
+              ${f.hint ? `<span class="settings-hint">${f.hint}</span>` : ''}
+              <label class="settings-toggle">
+                <input type="checkbox" data-section="${sec.key}" data-key="${f.key}" ${val === 'true' || val === true ? 'checked' : ''}>
+                <span class="settings-toggle-slider"></span>
+              </label>
+            </div>`;
+          }
+          return `<div class="settings-field">
+            <label class="settings-label">${f.label}</label>
+            ${f.hint ? `<span class="settings-hint">${f.hint}</span>` : ''}
+            <input type="${f.type}" class="settings-input" data-section="${sec.key}" data-key="${f.key}"
+              value="${escHtml(val)}" placeholder="${f.label}">
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('settingsActions').style.display = 'flex';
+}
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function gatherSettings() {
+  const result = {};
+  document.querySelectorAll('[data-section]').forEach(el => {
+    const sec = el.dataset.section;
+    const key = el.dataset.key;
+    if (!result[sec]) result[sec] = {};
+    if (el.type === 'checkbox') {
+      result[sec][key] = el.checked ? 'true' : 'false';
+    } else {
+      result[sec][key] = el.value;
+    }
+  });
+  return result;
+}
+
+async function saveSettings() {
+  const data = gatherSettings();
+  try {
+    const r = await fetch(API + '/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(data),
+    });
+    const d = await r.json();
+    if (d.success) {
+      showToast('Settings saved! Restart server to apply.', 'success');
+    } else {
+      showToast('Failed: ' + (d.error || 'Unknown error'), 'error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+function resetSettings() {
+  renderSettings(originalSettings);
+  showToast('Settings reset to last saved values', 'info');
+}
+
+function showToast(msg, type) {
+  if (window.OpenPlexToast) {
+    OpenPlexToast[type || 'info']('Settings', msg);
+  } else {
+    alert(msg);
+  }
+}
+
+loadSettings();
+</script>
+</body>
+</html>

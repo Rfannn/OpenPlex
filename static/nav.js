@@ -45,7 +45,11 @@ const OpenPlexNav = {
           <span class="op-logo-text">OpenPlex</span>
         </a>
         <div class="op-right">
-          <button class="op-search-btn" id="opSearch" title="Search">${this._svg('search')}</button>
+          <div class="op-search-wrap" id="opSearchWrap">
+            <span class="op-search-icon-sm">${this._svg('search')}</span>
+            <input type="text" class="op-search-input" id="opSearchInput" placeholder="Search..." autocomplete="off">
+            <kbd class="op-search-kbd">⌘K</kbd>
+          </div>
           <div class="op-user">
             <button class="op-avatar" id="opAvatar">${initial}</button>
             <div class="op-menu" id="opMenu">
@@ -53,6 +57,7 @@ const OpenPlexNav = {
               <div class="op-menu-sep"></div>
               <a href="/profile" class="op-menu-item">${this._svg('user')} Profile</a>
               <a href="/upload" class="op-menu-item">${this._svg('upload')} Uploads</a>
+              <a href="/settings" class="op-menu-item">${this._svg('settings')} Settings</a>
               <a href="/status" class="op-menu-item">${this._svg('chart-bar')} Server</a>
               <div class="op-menu-sep"></div>
               <button class="op-menu-item" id="opLogout">${this._svg('sign-out')} Logout</button>
@@ -99,88 +104,65 @@ const OpenPlexNav = {
       window.location.href = '/login';
     };
 
-    // Search overlay
-    const searchBtn = document.getElementById('opSearch');
-    if (searchBtn) {
-      const overlay = document.createElement('div');
-      overlay.className = 'op-search-overlay';
-      overlay.id = 'opSearchOverlay';
-      overlay.innerHTML = `
-        <div class="op-search-backdrop"></div>
-        <div class="op-search-box">
-          <span class="op-search-icon">${this._svg('search')}</span>
-          <input type="text" id="opSearchInput" placeholder="Search files, library, downloads..." autocomplete="off" autofocus>
-          <kbd class="op-search-esc">ESC</kbd>
-        </div>
-        <div class="op-search-results" id="opSearchResults"></div>
-      `;
-      document.body.appendChild(overlay);
+    // Search — inline input with dropdown results
+    const searchInput = document.getElementById('opSearchInput');
+    if (searchInput) {
+      const resultsDiv = document.createElement('div');
+      resultsDiv.className = 'op-search-dropdown';
+      resultsDiv.id = 'opSearchDropdown';
+      searchInput.parentElement.appendChild(resultsDiv);
 
-      searchBtn.onclick = () => {
-        overlay.classList.add('open');
-        setTimeout(() => document.getElementById('opSearchInput').focus(), 100);
-      };
-      overlay.querySelector('.op-search-backdrop').onclick = () => overlay.classList.remove('open');
-      document.addEventListener('keydown', (e) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-          e.preventDefault();
-          overlay.classList.add('open');
-          setTimeout(() => document.getElementById('opSearchInput').focus(), 100);
-        }
-        if (e.key === 'Escape') overlay.classList.remove('open');
-      });
-
-      // Live search
-      let searchTimer = null;
-      document.getElementById('opSearchInput').addEventListener('input', (e) => {
+      let timer = null;
+      searchInput.addEventListener('input', (e) => {
         const q = e.target.value.trim();
-        clearTimeout(searchTimer);
-        if (q.length < 2) {
-          document.getElementById('opSearchResults').innerHTML = '';
-          return;
-        }
-        searchTimer = setTimeout(() => this._doSearch(q), 250);
+        clearTimeout(timer);
+        if (q.length < 2) { resultsDiv.innerHTML = ''; resultsDiv.classList.remove('open'); return; }
+        timer = setTimeout(() => this._doSearch(q), 250);
+      });
+      searchInput.addEventListener('focus', () => { if (resultsDiv.innerHTML) resultsDiv.classList.add('open'); });
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.op-search-wrap')) resultsDiv.classList.remove('open');
+      });
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); searchInput.focus(); }
+        if (e.key === 'Escape') { searchInput.blur(); resultsDiv.classList.remove('open'); }
       });
     }
   },
 
   async _doSearch(q) {
-    const results = document.getElementById('opSearchResults');
+    const results = document.getElementById('opSearchDropdown');
     results.innerHTML = '<div class="op-search-loading">Searching...</div>';
+    results.classList.add('open');
     try {
-      // Search library
-      const libR = await fetch(`/api/library/search?q=${encodeURIComponent(q)}&limit=5`);
+      const [libR, fileR] = await Promise.all([
+        fetch(`/api/library/search?q=${encodeURIComponent(q)}&limit=5`),
+        fetch(`/api/search?q=${encodeURIComponent(q)}`).catch(() => ({ json: () => ({ results: [] }) }))
+      ]);
       const libD = await libR.json();
-      // Search files
-      const fileR = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       const fileD = await fileR.json();
 
       let html = '';
       if (libD.results && libD.results.length) {
-        html += '<div class="op-search-group">Library</div>';
         libD.results.forEach(r => {
-          html += `<a href="/library" class="op-search-item" onclick="document.getElementById('opSearchOverlay').classList.remove('open')">
-            <span class="op-search-type">🎬</span>
-            <div><div class="op-search-name">${r.title || ''}</div>
-            <div class="op-search-meta">${[r.year, (r.genres||[]).slice(0,2).join(', ')].filter(Boolean).join(' · ')}</div></div>
+          html += `<a href="/library" class="op-search-hit" onclick="this.closest('.op-search-dropdown').classList.remove('open')">
+            <span class="op-search-hit-icon">🎬</span>
+            <div><div class="op-search-hit-name">${r.title || ''}</div>
+            <div class="op-search-hit-meta">${[r.year, (r.genres||[]).slice(0,2).join(', ')].filter(Boolean).join(' · ')}</div></div>
           </a>`;
         });
       }
       if (fileD.results && fileD.results.length) {
-        html += '<div class="op-search-group">Files</div>';
         fileD.results.slice(0, 5).forEach(f => {
-          html += `<a href="/" class="op-search-item" onclick="document.getElementById('opSearchOverlay').classList.remove('open')">
-            <span class="op-search-type">${f.type === 'video' ? '🎥' : f.type === 'audio' ? '🎵' : f.type === 'image' ? '🖼️' : '📄'}</span>
-            <div><div class="op-search-name">${f.name}</div>
-            <div class="op-search-meta">${f.path || ''}</div></div>
+          html += `<a href="/" class="op-search-hit" onclick="this.closest('.op-search-dropdown').classList.remove('open')">
+            <span class="op-search-hit-icon">${f.type === 'video' ? '🎥' : f.type === 'audio' ? '🎵' : '📄'}</span>
+            <div><div class="op-search-hit-name">${f.name}</div></div>
           </a>`;
         });
       }
-      if (!html) html = '<div class="op-search-empty">No results found</div>';
+      if (!html) html = '<div class="op-search-empty">No results</div>';
       results.innerHTML = html;
-    } catch {
-      results.innerHTML = '<div class="op-search-empty">Search failed</div>';
-    }
+    } catch { results.innerHTML = '<div class="op-search-empty">Search failed</div>'; }
   },
 
   _svg(n) {
@@ -195,6 +177,7 @@ const OpenPlexNav = {
       'upload': '<path d="M12 15V3m0 0l-4 4m4-4l4 4M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
       'chart-bar': '<rect x="3" y="12" width="4" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="10" y="6" width="4" height="15" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>',
       'sign-out': '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+      'settings': '<circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
       'arrow-left': '<path d="M19 12H5m0 0l7 7m-7-7l7-7" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     };
     return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">${i[n]||''}</svg>`;

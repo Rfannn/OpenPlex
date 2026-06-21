@@ -343,7 +343,7 @@ if STATIC_DIR.exists():
 from app.services.cache import response_cache
 
 from app.routers import auth, browse, media, history, downloads, catalog, status as status_router
-from app.routers import health as health_router, ai as ai_router, chat as chat_router
+from app.routers import health as health_router, ai as ai_router, chat as chat_router, settings as settings_router
 app.include_router(auth.router)
 app.include_router(browse.router)
 app.include_router(media.router)
@@ -354,6 +354,7 @@ app.include_router(status_router.router)
 app.include_router(health_router.router)
 app.include_router(ai_router.router)
 app.include_router(chat_router.router)
+app.include_router(settings_router.router)
 
 try:
     from app.routers import library as library_router
@@ -423,6 +424,11 @@ async def chat_page(request: Request):
 async def profile_page(request: Request):
     logger.debug("GET /profile")
     return _get_templates().TemplateResponse(request, "profile.html")
+
+@app.get("/settings")
+async def settings_page(request: Request):
+    logger.debug("GET /settings")
+    return _get_templates().TemplateResponse(request, "settings.html")
 
 @app.get("/health")
 async def health_page(request: Request):
