@@ -45,7 +45,11 @@ def _write_env(data: dict):
 
 @router.get("/settings")
 async def settings_page(request: Request):
-    return request.app.state.templates.TemplateResponse(request, "settings.html")
+    from pathlib import Path
+    from fastapi.templating import Jinja2Templates
+    tdir = Path(__file__).resolve().parent.parent.parent / "templates"
+    templates = Jinja2Templates(directory=str(tdir))
+    return templates.TemplateResponse(request, "settings.html")
 
 
 @router.get("/api/settings")

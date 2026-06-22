@@ -425,11 +425,6 @@ async def profile_page(request: Request):
     logger.debug("GET /profile")
     return _get_templates().TemplateResponse(request, "profile.html")
 
-@app.get("/settings")
-async def settings_page(request: Request):
-    logger.debug("GET /settings")
-    return _get_templates().TemplateResponse(request, "settings.html")
-
 @app.get("/health")
 async def health_page(request: Request):
     logger.debug("GET /health")
