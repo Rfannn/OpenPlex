@@ -3021,6 +3021,11 @@ body { padding-top: 56px; padding-bottom: 0; }
 .settings-section {
   background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
   border-radius: 16px; overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.settings-section.settings-highlight {
+  border-color: rgba(99,102,241,0.5);
+  box-shadow: 0 0 20px rgba(99,102,241,0.15);
 }
 .settings-section-header {
   display: flex; align-items: center; gap: 10px;

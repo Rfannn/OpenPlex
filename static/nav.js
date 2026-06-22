@@ -119,6 +119,9 @@ const OpenPlexNav = {
         if (q.length < 2) { resultsDiv.innerHTML = ''; resultsDiv.classList.remove('open'); return; }
         timer = setTimeout(() => this._doSearch(q), 250);
       });
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); }
+      });
       searchInput.addEventListener('focus', () => { if (resultsDiv.innerHTML) resultsDiv.classList.add('open'); });
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.op-search-wrap')) resultsDiv.classList.remove('open');
@@ -130,39 +133,116 @@ const OpenPlexNav = {
     }
   },
 
+  _currentPage() {
+    const p = window.location.pathname;
+    if (p === '/') return 'files';
+    if (p.startsWith('/library')) return 'library';
+    if (p.startsWith('/downloads')) return 'downloads';
+    if (p.startsWith('/settings')) return 'settings';
+    if (p.startsWith('/chat')) return 'chat';
+    return 'other';
+  },
+
+  _esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; },
+
   async _doSearch(q) {
     const results = document.getElementById('opSearchDropdown');
     results.innerHTML = '<div class="op-search-loading">Searching...</div>';
     results.classList.add('open');
-    try {
-      const [libR, fileR] = await Promise.all([
-        fetch(`/api/library/search?q=${encodeURIComponent(q)}&limit=5`),
-        fetch(`/api/search?q=${encodeURIComponent(q)}`).catch(() => ({ json: () => ({ results: [] }) }))
-      ]);
-      const libD = await libR.json();
-      const fileD = await fileR.json();
+    const page = this._currentPage();
 
+    try {
       let html = '';
-      if (libD.results && libD.results.length) {
-        libD.results.forEach(r => {
-          html += `<a href="/library" class="op-search-hit" onclick="this.closest('.op-search-dropdown').classList.remove('open')">
-            <span class="op-search-hit-icon">🎬</span>
-            <div><div class="op-search-hit-name">${r.title || ''}</div>
-            <div class="op-search-hit-meta">${[r.year, (r.genres||[]).slice(0,2).join(', ')].filter(Boolean).join(' · ')}</div></div>
-          </a>`;
+
+      if (page === 'settings') {
+        const settingsKeywords = [
+          { section: 'Server', icon: '🖥️', terms: ['host', 'port', 'debug', 'media', 'root', 'path', 'server'] },
+          { section: 'AI Configuration', icon: '🤖', terms: ['agnes', 'ai', 'model', 'llama', 'local', 'majid', 'gpt'] },
+          { section: 'Metadata APIs', icon: '🎬', terms: ['tmdb', 'omdb', 'fanart', 'tvdb', 'metadata', 'api key'] },
+          { section: 'Subtitles', icon: '💬', terms: ['opensubtitles', 'subtitle', 'sub'] },
+          { section: 'Catalog', icon: '📚', terms: ['catalog', 'refresh', 'auto'] },
+          { section: 'Downloads', icon: '⬇️', terms: ['aria2', 'download', 'rpc', 'port'] },
+          { section: 'Display & Storage', icon: '🎨', terms: ['cors', 'thumbnail', 'cache', 'disk', 'storage', 'display'] },
+        ];
+        const lq = q.toLowerCase();
+        settingsKeywords.forEach(s => {
+          if (s.terms.some(t => lq.includes(t) || t.includes(lq))) {
+            html += `<div class="op-search-hit" onclick="document.querySelector('[data-settings-nav]')?.click(); window.OpenPlexNav._scrollToSetting('${s.section}'); this.closest('.op-search-dropdown').classList.remove('open');">
+              <span class="op-search-hit-icon">${s.icon}</span>
+              <div><div class="op-search-hit-name">${s.section}</div>
+              <div class="op-search-hit-meta">Settings</div></div>
+            </div>`;
+          }
         });
+        if (!html) html = '<div class="op-search-empty">No matching settings</div>';
+
+      } else if (page === 'files') {
+        const fileR = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const fileD = await fileR.json();
+        if (fileD.results && fileD.results.length) {
+          fileD.results.slice(0, 10).forEach(f => {
+            html += `<a href="/?q=${encodeURIComponent(f.name)}" class="op-search-hit" onclick="event.preventDefault(); this.closest('.op-search-dropdown').classList.remove('open'); document.getElementById('opSearchInput').value='';">
+              <span class="op-search-hit-icon">${f.type === 'video' ? '🎥' : f.type === 'audio' ? '🎵' : '📄'}</span>
+              <div><div class="op-search-hit-name">${this._esc(f.name)}</div>
+              <div class="op-search-hit-meta">File</div></div>
+            </a>`;
+          });
+        }
+        if (!html) html = '<div class="op-search-empty">No matching files</div>';
+
+      } else if (page === 'downloads') {
+        const dlR = await fetch(`/api/downloads/search?q=${encodeURIComponent(q)}`);
+        const dlD = await dlR.json();
+        if (dlD.downloads && dlD.downloads.length) {
+          dlD.downloads.slice(0, 10).forEach(d => {
+            html += `<div class="op-search-hit" onclick="this.closest('.op-search-dropdown').classList.remove('open');">
+              <span class="op-search-hit-icon">⬇️</span>
+              <div><div class="op-search-hit-name">${this._esc(d.title || d.file_name)}</div>
+              <div class="op-search-hit-meta">${d.status || ''}</div></div>
+            </div>`;
+          });
+        }
+        if (!html) html = '<div class="op-search-empty">No matching downloads</div>';
+
+      } else {
+        const libR = await fetch(`/api/library/search?q=${encodeURIComponent(q)}&limit=8`);
+        const libD = await libR.json();
+        if (libD.results && libD.results.length) {
+          libD.results.forEach(r => {
+            html += `<a href="/library?q=${encodeURIComponent(r.title || '')}" class="op-search-hit" onclick="event.preventDefault(); this.closest('.op-search-dropdown').classList.remove('open'); window.location.href='/library';">
+              <span class="op-search-hit-icon">🎬</span>
+              <div><div class="op-search-hit-name">${this._esc(r.title || '')}</div>
+              <div class="op-search-hit-meta">${[r.year, (r.genres||[]).slice(0,2).join(', ')].filter(Boolean).join(' · ')}</div></div>
+            </a>`;
+          });
+        }
+        const fileR = await fetch(`/api/search?q=${encodeURIComponent(q)}`).catch(() => ({ json: () => ({ results: [] }) }));
+        const fileD = await fileR.json();
+        if (fileD.results && fileD.results.length) {
+          fileD.results.slice(0, 5).forEach(f => {
+            html += `<a href="/?q=${encodeURIComponent(f.name)}" class="op-search-hit" onclick="event.preventDefault(); this.closest('.op-search-dropdown').classList.remove('open'); window.location.href='/';">
+              <span class="op-search-hit-icon">${f.type === 'video' ? '🎥' : f.type === 'audio' ? '🎵' : '📄'}</span>
+              <div><div class="op-search-hit-name">${this._esc(f.name)}</div>
+              <div class="op-search-hit-meta">File</div></div>
+            </a>`;
+          });
+        }
+        if (!html) html = '<div class="op-search-empty">No results</div>';
       }
-      if (fileD.results && fileD.results.length) {
-        fileD.results.slice(0, 5).forEach(f => {
-          html += `<a href="/" class="op-search-hit" onclick="this.closest('.op-search-dropdown').classList.remove('open')">
-            <span class="op-search-hit-icon">${f.type === 'video' ? '🎥' : f.type === 'audio' ? '🎵' : '📄'}</span>
-            <div><div class="op-search-hit-name">${f.name}</div></div>
-          </a>`;
-        });
-      }
-      if (!html) html = '<div class="op-search-empty">No results</div>';
+
       results.innerHTML = html;
     } catch { results.innerHTML = '<div class="op-search-empty">Search failed</div>'; }
+  },
+
+  _scrollToSetting(section) {
+    const headings = document.querySelectorAll('.settings-section-header h2');
+    headings.forEach(h => {
+      if (h.textContent === section) {
+        h.closest('.settings-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        h.closest('.settings-section')?.classList.add('settings-highlight');
+        setTimeout(() => h.closest('.settings-section')?.classList.remove('settings-highlight'), 2000);
+      }
+    });
   },
 
   _svg(n) {
