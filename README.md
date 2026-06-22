@@ -1,11 +1,13 @@
 # OpenPlex
 
-A self-hosted media server with Netflix-style browsing, AI-powered chat, download management, and multi-source content discovery.
+A self-hosted media server with library browsing, AI-powered chat, download management, and multi-source content discovery.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
+[![Roadmap](https://img.shields.io/badge/roadmap-v2.2-blue)](ROADMAP.md)
+[![Status](https://img.shields.io/badge/status-beta-yellow)](STATUS.md)
 
 ## Features
 
