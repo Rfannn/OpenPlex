@@ -81,3 +81,7 @@ docker-compose.override.yml
 .roo/
 .trae/
 .windsurf/
+
+# Personal docs (not for open-source repo)
+AGENTS.md
+Complete Home Server Document.md
