@@ -5,13 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Health — OpenPlex</title>
   <link rel="stylesheet" href="/static/style.css?v=6" />
+  <link rel="stylesheet" href="/static/effects.css?v=7">
   <link rel="manifest" href="/static/manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="/static/effects.css?v=7">
-</head>
-<body>
-<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
   <style>
     .health-page { max-width: 1200px; margin: 0 auto; padding: 20px; }
     .health-page h1 { font-size: 1.6rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
@@ -62,13 +59,13 @@
     }
     .nav-bar a:hover { background: rgba(255,255,255,0.15); }
   </style>
-<link rel="stylesheet" href="/static/effects.css?v=7">
 </head>
 <body>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});</script>
   <div class="glass-container health-page">
     <nav class="nav-bar">
       <a href="/">Home</a>
-      <a href="/library">Files</a>
+      <a href="/library">Library</a>
       <a href="/downloads">Downloads</a>
       <a href="/status">Status</a>
       <a href="/health">Health</a>

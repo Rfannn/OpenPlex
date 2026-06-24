@@ -1,6 +1,5 @@
 """Library API — Netflix-style browsing, continue-watching, watchlist, TMDB-driven rows."""
 
-import os
 import json
 import logging
 import random

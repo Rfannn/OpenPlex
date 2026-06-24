@@ -1,6 +1,9 @@
-const CACHE = 'mg-v6';
+const CACHE = 'op-v7';
 const STATIC = [
   '/static/style.css',
+  '/static/effects.css',
+  '/static/nav.js',
+  '/static/toast.js',
   '/static/player.js',
   '/static/script.js',
   '/static/download-manager.js',

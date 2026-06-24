@@ -13,7 +13,7 @@ HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-8185}"
 
 echo "========================================"
-echo "  Media Gallery Server (Ubuntu)"
+echo "  OpenPlex Server (Ubuntu)"
 echo "========================================"
 echo ""
 

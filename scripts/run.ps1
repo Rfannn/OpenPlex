@@ -32,7 +32,7 @@ foreach ($c in $candidates) {
 if (-not $PythonExe) { Write-Error "Python 3.10+ not found"; exit 1 }
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Media Gallery Server (Windows)" -ForegroundColor Cyan
+Write-Host "  OpenPlex Server (Windows)" -ForegroundColor Cyan
 Write-Host "  Python: $PythonExe" -ForegroundColor Cyan
 Write-Host "  URL:    http://$ListenAddr`:$Port" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan

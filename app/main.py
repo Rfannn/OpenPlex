@@ -1,12 +1,9 @@
-import os
-import json
 import logging
 import sys
 import time
 import datetime
 from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import Optional
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
@@ -174,10 +171,11 @@ async def lifespan(app: FastAPI):
 
     from app.services import tmdb, omdb, tvdb, fanart
     sources = [s for s, fn in [("TMDB", tmdb), ("OMDb", omdb), ("TVDb", tvdb), ("Fanart", fanart)] if fn.is_configured()]
+    _tmdb_scheduler = None
     if sources:
-        tmdb_scheduler = AsyncIOScheduler()
-        tmdb_scheduler.add_job(background_tmdb_enrich, "interval", minutes=30, max_instances=1, coalesce=True, kwargs={"batch": 50})
-        tmdb_scheduler.start()
+        _tmdb_scheduler = AsyncIOScheduler()
+        _tmdb_scheduler.add_job(background_tmdb_enrich, "interval", minutes=30, max_instances=1, coalesce=True, kwargs={"batch": 50})
+        _tmdb_scheduler.start()
         logger.info(f"Metadata background enrichment scheduled every 30 min ({'+'.join(sources)})")
         # Run initial enrichment via create_task in a try/except wrapper
         async def initial_tmdb_wrapper():
@@ -251,6 +249,16 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("Local AI auto_start=False — will only start on demand")
 
+    routes_info = []
+    for route in app.routes:
+        if hasattr(route, "methods") and hasattr(route, "path"):
+            for method in route.methods:
+                if method in ("GET", "POST", "PUT", "DELETE", "PATCH"):
+                    routes_info.append(f"  {method:7s} {route.path}")
+    logger.info("Registered routes:")
+    for r in sorted(routes_info):
+        logger.info(r)
+
     yield
 
     if scheduler: scheduler.shutdown(wait=False)
@@ -258,12 +266,15 @@ async def lifespan(app: FastAPI):
     sched_dl_scheduler.shutdown(wait=False)
     cat_scheduler.shutdown(wait=False)
     start_year_scheduler.shutdown(wait=False)
+    if _tmdb_scheduler: _tmdb_scheduler.shutdown(wait=False)
     from app.services.downloader import stop_aria2
     stop_aria2()
     from app.services.scraper_registry import close_all as close_scrapers
     await close_scrapers()
     from app.routers.chat import close_ai_clients
     await close_ai_clients()
+    from app.services.cache import response_cache
+    response_cache.clear()
     logger.info("Server stopped")
 
 
@@ -278,19 +289,6 @@ app.add_middleware(RateLimitMiddleware)
 
 # ── Request Logging Middleware ────────────────────────────
 _REQUEST_SLOW = 1.0  # log slow requests (>1s) at WARNING level
-
-@app.on_event("startup")
-async def _log_routes():
-    """Log all registered routes at startup."""
-    routes_info = []
-    for route in app.routes:
-        if hasattr(route, "methods") and hasattr(route, "path"):
-            for method in route.methods:
-                if method in ("GET", "POST", "PUT", "DELETE", "PATCH"):
-                    routes_info.append(f"  {method:7s} {route.path}")
-    logger.info("Registered routes:")
-    for r in sorted(routes_info):
-        logger.info(r)
 
 
 @app.middleware("http")
@@ -359,14 +357,14 @@ app.include_router(settings_router.router)
 try:
     from app.routers import library as library_router
     app.include_router(library_router.router)
-except ImportError:
-    pass
+except ImportError as e:
+    logger.warning(f"Library router not loaded: {e}")
 
 try:
     from app.routers import metrics as metrics_router
     app.include_router(metrics_router.router)
-except ImportError:
-    pass
+except ImportError as e:
+    logger.warning(f"Metrics router not loaded: {e}")
 
 # ── Template Routes ───────────────────────────────────────
 
@@ -404,11 +402,6 @@ async def player_page(request: Request):
 async def downloads_page(request: Request):
     logger.debug("GET /downloads")
     return _get_templates().TemplateResponse(request, "downloads.html")
-
-@app.get("/status")
-async def status_page(request: Request):
-    logger.debug("GET /status")
-    return _get_templates().TemplateResponse(request, "status.html")
 
 @app.get("/upload")
 async def upload_page(request: Request):
@@ -472,14 +465,6 @@ async def ai_health():
     except Exception:
         pass
     return {"healthy": healthy, "categorized": categorized}
-
-
-@app.on_event("shutdown")
-async def shutdown_clear():
-    from app.services.cache import response_cache
-    response_cache.clear()
-    from app.routers.chat import close_chat_client
-    await close_chat_client()
 
 
 if __name__ == "__main__":

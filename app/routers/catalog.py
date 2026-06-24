@@ -16,8 +16,6 @@ from app.config import settings
 from app.models.download_catalog import DownloadCatalog
 from app.models.user import User
 from app.dependencies import get_current_user, get_optional_user, require_admin
-from app.services.scraper import fetch_season_page
-from app.services.downloader import add_download, get_progress, rpc_call
 from app.services.catalog_updater import update_catalog, enrich_catalog_covers
 from app.services.catalog_enricher import download_cover, COVERS_DIR
 from app.services.scraper_registry import search_all as registry_search_all, list_scrapers

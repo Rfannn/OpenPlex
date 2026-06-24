@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Installing Media Gallery server..."
+echo "Installing OpenPlex server..."
 
 # System deps
 sudo apt update

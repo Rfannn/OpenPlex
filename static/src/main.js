@@ -222,7 +222,7 @@ function renderHome() {
       ` : ''}
       <section class="lib-hero" id="lib-hero">
         <div class="lib-hero-content">
-          <h1>Media Gallery</h1>
+          <h1>OpenPlex</h1>
           <p>Browse your personal media library</p>
           <div class="lib-hero-actions">
             <button class="glass-btn primary" onclick="navigate('/library')">

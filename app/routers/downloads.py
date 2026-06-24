@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Body
 from pydantic import BaseModel
 from fastapi.responses import FileResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, cast, Float
+from sqlalchemy import select, func
 from sqlalchemy.orm.exc import StaleDataError
 
 from app.database import get_db, async_session
